@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
 import { RequestSuccessModal } from "@/components/tutors/RequestSuccessModal";
-import { CategoryData, CountryData, LocationData } from "@/lib/api";
+import { CategoryData, CountryData, LocationData, EducationLevelData } from "@/lib/api";
 
 const carouselImages = [
   {
@@ -28,6 +28,7 @@ export const PostAdClient: React.FC = () => {
   const [countriesList, setCountriesList] = useState<CountryData[]>([]);
   const [locationsList, setLocationsList] = useState<LocationData[]>([]);
   const [teachingModesList, setTeachingModesList] = useState<{ id: number; name: string }[]>([]);
+  const [educationLevelsList, setEducationLevelsList] = useState<EducationLevelData[]>([]);
 
   // Selected Country filter state
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -45,6 +46,7 @@ export const PostAdClient: React.FC = () => {
     experienceOrDays: "",
     preferredMode: "",
     budgetOrRate: "",
+    fee_type: "Per Hour",
     description: "",
   });
 
@@ -69,6 +71,9 @@ export const PostAdClient: React.FC = () => {
       });
       m.api.getLocations().then((data) => {
         if (data) setLocationsList(data);
+      });
+      m.api.getEducationLevels().then((data) => {
+        if (data) setEducationLevelsList(data);
       });
     });
 
@@ -162,7 +167,7 @@ export const PostAdClient: React.FC = () => {
         contact_email: formData.email,
         contact_phone: formData.phone,
         fee_min: fee_min,
-        fee_type: `per hour (${currentCurrency})`,
+        fee_type: `${formData.fee_type} (${currentCurrency})`,
         // Role specific mappings
         ...(activeRole === "student-parent"
           ? {
@@ -194,6 +199,7 @@ export const PostAdClient: React.FC = () => {
         experienceOrDays: "",
         preferredMode: "",
         budgetOrRate: "",
+        fee_type: "Per Hour",
         description: "",
       });
       setSelectedCountry("");
@@ -476,14 +482,27 @@ export const PostAdClient: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                   {activeRole === "student-parent" ? "Grade Level / Curriculum *" : "Grade Levels Taught *"}
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={activeRole === "student-parent" ? "e.g. Grade 10 (IB / IGCSE)" : "e.g. Secondary & High School"}
+                <select
                   value={formData.gradeOrLevel}
                   onChange={(e) => setFormData({ ...formData, gradeOrLevel: e.target.value })}
-                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
-                />
+                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+                  required
+                >
+                  <option value="">Select Grade Level...</option>
+                  {educationLevelsList.map((level) => (
+                    <option key={level.id} value={level.name}>
+                      {level.name}
+                    </option>
+                  ))}
+                  {educationLevelsList.length === 0 && (
+                    <>
+                      <option value="Primary School">Primary School</option>
+                      <option value="Middle School">Middle School</option>
+                      <option value="High School">High School</option>
+                      <option value="University">University</option>
+                    </>
+                  )}
+                </select>
               </div>
             </div>
 
@@ -536,21 +555,31 @@ export const PostAdClient: React.FC = () => {
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 {activeRole === "student-parent"
-                  ? `Budget (${currentCurrency}/hr or monthly) *`
-                  : `Hourly / Monthly Rate (${currentCurrency}) *`}
+                  ? `Budget (${currentCurrency}) *`
+                  : `Rate (${currentCurrency}) *`}
               </label>
-              <input
-                type="text"
-                required
-                placeholder={
-                  activeRole === "student-parent"
-                    ? `e.g. ${currentCurrency} 120 / Hour`
-                    : `e.g. ${currentCurrency} 150 / Hour`
-                }
-                value={formData.budgetOrRate}
-                onChange={(e) => setFormData({ ...formData, budgetOrRate: e.target.value })}
-                className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    activeRole === "student-parent"
+                      ? `e.g. ${currentCurrency} 120`
+                      : `e.g. ${currentCurrency} 150`
+                  }
+                  value={formData.budgetOrRate}
+                  onChange={(e) => setFormData({ ...formData, budgetOrRate: e.target.value })}
+                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
+                />
+                <select
+                  value={formData.fee_type}
+                  onChange={(e) => setFormData({ ...formData, fee_type: e.target.value })}
+                  className="border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer whitespace-nowrap min-w-[140px]"
+                >
+                  <option value="Per Hour">Per Hour</option>
+                  <option value="Per Month">Per Month</option>
+                </select>
+              </div>
             </div>
 
             {/* Description / Bio */}
