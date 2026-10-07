@@ -1,16 +1,33 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export const AboutHeroSection: React.FC = () => {
+  const [bannerImg, setBannerImg] = useState<string>("");
+
+  useEffect(() => {
+    import("@/lib/api").then((m) => {
+      m.api.getWebsiteImages().then((data) => {
+        if (data) {
+          const img = data.find(i => i.key === 'about_banner');
+          if (img && img.image) {
+            setBannerImg(`${m.BACKEND_URL}/storage/${img.image}`);
+          }
+        }
+      });
+    });
+  }, []);
+
   return (
     <section className="relative overflow-hidden py-20 sm:py-28 lg:py-28 min-h-[60vh] flex items-center justify-center text-white bg-slate-950">
       {/* Background Image */}
-      <img
-        src="/banner/b2.png"
-        alt="EduRide About Us Banner"
-        className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
-      />
+      {bannerImg && (
+        <img
+          src={bannerImg}
+          alt="EduRide About Us Banner"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
+        />
+      )}
 
       {/* Dark Overlay with Gradient */}
       {/* <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-950/90 pointer-events-none" /> */}

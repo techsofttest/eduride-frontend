@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const BACKEND_URL = API_BASE_URL.replace('/api/v1', '');
 
 export interface HomeBannerData {
   id: number;
@@ -35,6 +36,13 @@ export interface ContactInfoData {
   x?: string | null;
   linkedin?: string | null;
   youtube?: string | null;
+}
+
+export interface WebsiteImageData {
+  id: number;
+  key: string;
+  image: string | null;
+  description?: string | null;
 }
 
 export interface CmsPageData {
@@ -147,6 +155,7 @@ export const api = {
   getHomeBanners: () => fetchApi<HomeBannerData[]>('/cms/home-banners'),
   getWhatWeOffer: () => fetchApi<WhatWeOfferData[]>('/cms/what-we-offer'),
   getContactInfo: () => fetchApi<ContactInfoData>('/cms/contact-info'),
+  getWebsiteImages: () => fetchApi<WebsiteImageData[]>('/cms/website-images'),
   getCmsPage: (slug: string) => fetchApi<CmsPageData>(`/cms/pages/${slug}`),
   getFaqs: () => fetchApi<FaqData[]>('/cms/faqs'),
   getCategories: () => fetchApi<CategoryData[]>('/categories'),

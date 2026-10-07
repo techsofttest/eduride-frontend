@@ -5,18 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
 import { RequestSuccessModal } from "@/components/tutors/RequestSuccessModal";
-import { CategoryData, CountryData, LocationData, EducationLevelData } from "@/lib/api";
+import { CategoryData, CountryData, LocationData, EducationLevelData, BACKEND_URL } from "@/lib/api";
 
-const carouselImages = [
-  {
-    src: "/tutor-banner/tutor3.png",
-    alt: "Expert Tutors & Students EduRide",
-  },
-  {
-    src: "/about-home/a1.png",
-    alt: "EduRide Learning Platform",
-  },
-];
+// removed carouselImages
 
 type RoleType = "student-parent" | "tutor";
 
@@ -44,6 +35,7 @@ export const PostAdClient: React.FC = () => {
     subjectOrRequirement: "",
     gradeOrLevel: "",
     experienceOrDays: "",
+    preferredDays: [] as string[],
     preferredMode: "",
     budgetOrRate: "",
     fee_type: "Per Hour",
@@ -56,7 +48,24 @@ export const PostAdClient: React.FC = () => {
     phone: "",
     role: "student-parent",
   });
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [studentBanner, setStudentBanner] = useState<string>("");
+  const [tutorBanner, setTutorBanner] = useState<string>("");
+
+  const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
+  const daysDropdownRef = React.useRef<HTMLDivElement>(null);
+  const daysOptions = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (daysDropdownRef.current && !daysDropdownRef.current.contains(event.target as Node)) {
+        setIsDaysDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     import("@/lib/api").then((m) => {
@@ -75,12 +84,16 @@ export const PostAdClient: React.FC = () => {
       m.api.getEducationLevels().then((data) => {
         if (data) setEducationLevelsList(data);
       });
+      m.api.getWebsiteImages().then((data) => {
+        if (data) {
+          const sImg = data.find(img => img.key === 'post_ad_student_side');
+          if (sImg && sImg.image) setStudentBanner(`${BACKEND_URL}/storage/${sImg.image}`);
+          
+          const tImg = data.find(img => img.key === 'post_ad_tutor_side');
+          if (tImg && tImg.image) setTutorBanner(`${BACKEND_URL}/storage/${tImg.image}`);
+        }
+      });
     });
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-    }, 4000);
-    return () => clearInterval(timer);
   }, []);
 
   // Filter locations by selected country if selected
@@ -173,6 +186,7 @@ export const PostAdClient: React.FC = () => {
           ? {
               requirements: formData.subjectOrRequirement,
               availability: formData.experienceOrDays,
+              preferred_days: formData.preferredDays,
             }
           : {
               qualification: formData.subjectOrRequirement,
@@ -197,6 +211,7 @@ export const PostAdClient: React.FC = () => {
         subjectOrRequirement: "",
         gradeOrLevel: "",
         experienceOrDays: "",
+        preferredDays: [],
         preferredMode: "",
         budgetOrRate: "",
         fee_type: "Per Hour",
@@ -213,28 +228,20 @@ export const PostAdClient: React.FC = () => {
   return (
     <div className="w-full">
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-        {/* Left Column: Full Background Carousel Bleeding to Left Edge */}
+        {/* Left Column: Side Image Bleeding to Left Edge */}
         <div className="lg:col-span-5 lg:sticky lg:top-0 lg:-mt-56 relative min-h-[500px] sm:min-h-[600px] lg:h-screen rounded-none overflow-hidden flex flex-col justify-between p-8 sm:p-12 text-white bg-slate-900 group">
-          {/* Background Carousel Images */}
-          {carouselImages.map((img, idx) => (
-            <div
-              key={img.src}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                idx === currentSlide ? "opacity-100 z-0" : "opacity-0 z-0"
-              }`}
-            >
-              <Image
-                src={img.src}
-                alt={img.alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                priority={idx === 0}
+          {/* Background Image */}
+          <div className="absolute inset-0 transition-opacity duration-700 ease-in-out opacity-100 z-0">
+            {(activeRole === "student-parent" ? studentBanner : tutorBanner) && (
+              <img
+                src={activeRole === "student-parent" ? studentBanner : tutorBanner}
+                alt="EduRide Platform"
+                className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
               />
-              {/* Dark Gradient Overlay for optimal text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-slate-950/30" />
-            </div>
-          ))}
+            )}
+            {/* Dark Gradient Overlay for optimal text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-slate-950/30" />
+          </div>
 
           {/* Top Breadcrumb Inside Left Column */}
           <div className="relative z-10 lg:pt-4">
@@ -507,9 +514,9 @@ export const PostAdClient: React.FC = () => {
             </div>
 
             {/* Preferred Mode & Experience / Days */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${activeRole === "student-parent" ? "sm:grid-cols-4" : "sm:grid-cols-2"}`}>
               {/* Teaching / Tutoring Mode from Database */}
-              <div>
+              <div className={activeRole === "student-parent" ? "sm:col-span-1" : ""}>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                   Preferred Mode *
                 </label>
@@ -535,20 +542,82 @@ export const PostAdClient: React.FC = () => {
                 </select>
               </div>
 
-              {/* Experience (Tutor) or Preferred Days (Student) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  {activeRole === "student-parent" ? "Preferred Days / Timings *" : "Years of Experience *"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={activeRole === "student-parent" ? "e.g. 3 Days/Week (Weekends)" : "e.g. 8+ Years Experience"}
-                  value={formData.experienceOrDays}
-                  onChange={(e) => setFormData({ ...formData, experienceOrDays: e.target.value })}
-                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
-                />
-              </div>
+              {/* Experience (Tutor) or Preferred Days/Timings (Student) */}
+              {activeRole === "student-parent" ? (
+                <>
+                  <div className="relative sm:col-span-1" ref={daysDropdownRef}>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Preferred Days *
+                    </label>
+                    <div 
+                      className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 bg-white cursor-pointer flex justify-between items-center transition-all focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100"
+                      onClick={() => setIsDaysDropdownOpen(!isDaysDropdownOpen)}
+                    >
+                      <span className="truncate text-slate-600">
+                        {formData.preferredDays.length > 0 
+                          ? formData.preferredDays.join(", ") 
+                          : "Select Days..."}
+                      </span>
+                      <svg className={`w-4 h-4 text-slate-400 transition-transform ${isDaysDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                    
+                    {isDaysDropdownOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <div className="p-2 space-y-1">
+                          {daysOptions.map(day => (
+                            <label key={day} className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="w-4 h-4 text-[#2563eb] rounded border-slate-300 focus:ring-[#2563eb]"
+                                checked={formData.preferredDays.includes(day)}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    preferredDays: checked 
+                                      ? [...prev.preferredDays, day] 
+                                      : prev.preferredDays.filter(d => d !== day)
+                                  }));
+                                }}
+                              />
+                              <span className="text-sm font-medium text-slate-700">{day}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Preferred Timings *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 5 PM - 7 PM"
+                      value={formData.experienceOrDays}
+                      onChange={(e) => setFormData({ ...formData, experienceOrDays: e.target.value })}
+                      className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Years of Experience *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 8+ Years Experience"
+                    value={formData.experienceOrDays}
+                    onChange={(e) => setFormData({ ...formData, experienceOrDays: e.target.value })}
+                    className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Dynamic Currency Rate / Budget Input */}
