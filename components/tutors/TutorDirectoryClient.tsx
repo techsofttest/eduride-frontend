@@ -4,19 +4,19 @@ import React, { useState, useEffect } from "react";
 import { TutorCard, Tutor } from "@/components/tutors/TutorCard";
 import { TutorFilterBar } from "@/components/tutors/TutorFilterBar";
 import { PurchaseCard } from "@/components/tutors/PurchaseCard";
+import { AdvertisementDetailsModal } from "@/components/tutors/AdvertisementDetailsModal";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
-import { api, AdvertisementData, CategoryData, LocationData } from "@/lib/api";
+import { api, AdvertisementData, CategoryData } from "@/lib/api";
 
 export const TutorDirectoryClient: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [selectedLocation, setSelectedLocation] = useState<string>("All");
   const [selectedCountry, setSelectedCountry] = useState<string>("All");
   const [selectedMode, setSelectedMode] = useState<string>("All");
   const [activeModalTutor, setActiveModalTutor] = useState<any>(null);
+  const [activeDetailsTutor, setActiveDetailsTutor] = useState<AdvertisementData | null>(null);
 
   const [tutors, setTutors] = useState<AdvertisementData[]>([]);
   const [categoriesList, setCategoriesList] = useState<CategoryData[]>([]);
-  const [locationsList, setLocationsList] = useState<LocationData[]>([]);
   const [countriesList, setCountriesList] = useState<{id: number, name: string}[]>([]);
   const [teachingModesList, setTeachingModesList] = useState<{id: number, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,10 +24,9 @@ export const TutorDirectoryClient: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [adsRes, catsRes, locsRes, modesRes, countriesRes] = await Promise.all([
+        const [adsRes, catsRes, modesRes, countriesRes] = await Promise.all([
           api.getAdvertisements({ type: "tutor" }),
           api.getCategories(),
-          api.getLocations(),
           api.getTeachingModes(),
           api.getCountries(),
         ]);
@@ -37,9 +36,6 @@ export const TutorDirectoryClient: React.FC = () => {
         }
         if (catsRes) {
           setCategoriesList(catsRes);
-        }
-        if (locsRes) {
-          setLocationsList(locsRes);
         }
         if (modesRes) {
           setTeachingModesList(modesRes);
@@ -59,48 +55,37 @@ export const TutorDirectoryClient: React.FC = () => {
   const categories = ["All", ...categoriesList.map((c) => c.name)];
   const countries = ["All", ...countriesList.map((c) => c.name)];
   
-  // Filter locations based on selected country
-  const filteredLocationsList = selectedCountry === "All" 
-    ? locationsList 
-    : locationsList.filter((l) => {
-        const country = countriesList.find((c) => c.name === selectedCountry);
-        return country && l.country_id === country.id;
-      });
-
-  const locations = ["All", ...filteredLocationsList.map((l) => l.name)];
   const modes = ["All", ...teachingModesList.map((m) => m.name)];
 
 
   // Filtering Logic
   const filteredTutors = tutors.filter((tutor) => {
     const tutorCategory = tutor.category?.name || "General";
-    const tutorLocation = tutor.location?.name || tutor.city || "Online";
     const tutorMode = tutor.teaching_mode || "";
     
     // Country matching
     const selectedCountryData = countriesList.find(c => c.name === selectedCountry);
-    const matchCountry = selectedCountry === "All" || (selectedCountryData && tutor.location?.country_id === selectedCountryData.id);
+    const matchCountry = selectedCountry === "All" || (
+      selectedCountryData &&
+      (tutor.country === selectedCountry || tutor.location?.country_id === selectedCountryData.id)
+    );
 
     const matchCategory =
       selectedCategory === "All" || tutorCategory === selectedCategory;
-    const matchLocation =
-      selectedLocation === "All" || tutorLocation.toLowerCase().includes(selectedLocation.toLowerCase());
     const matchMode =
       selectedMode === "All" ||
       tutorMode.toLowerCase().includes(selectedMode.replace(" Tuition", "").replace(" tuition", "").toLowerCase());
-    return matchCountry && matchCategory && matchLocation && matchMode;
+    return matchCountry && matchCategory && matchMode;
   });
 
   const hasActiveFilters =
     selectedCategory !== "All" ||
-    selectedLocation !== "All" ||
     selectedCountry !== "All" ||
     selectedMode !== "All";
 
   const handleResetFilters = () => {
     setSelectedCategory("All");
     setSelectedCountry("All");
-    setSelectedLocation("All");
     setSelectedMode("All");
   };
 
@@ -111,15 +96,12 @@ export const TutorDirectoryClient: React.FC = () => {
         setSelectedCategory={setSelectedCategory}
         selectedCountry={selectedCountry}
         setSelectedCountry={setSelectedCountry}
-        selectedLocation={selectedLocation}
-        setSelectedLocation={setSelectedLocation}
         selectedMode={selectedMode}
         setSelectedMode={setSelectedMode}
         hasActiveFilters={hasActiveFilters}
         handleResetFilters={handleResetFilters}
         categories={categories}
         countries={countries}
-        locations={locations}
         modes={modes}
       />
 
@@ -145,13 +127,17 @@ export const TutorDirectoryClient: React.FC = () => {
                 category: tutor.category?.name || "General",
                 image: "/tutors/t1.png",
                 location: tutor.location?.name || tutor.city || "Online",
-                gradeLevel: tutor.education_level || "Any level",
+                isCommunity: tutor.type === "community",
+                gradeLevel: Array.isArray(tutor.education_level)
+                  ? tutor.education_level.join(", ")
+                  : tutor.education_level || "Any level",
                 experience: tutor.experience || "Not specified",
                 mode: tutor.teaching_mode || "Flexible",
                 rate: tutor.fee_min ? `AED ${tutor.fee_min}${tutor.fee_type ? '/' + tutor.fee_type.replace('per ', '') : ''}` : "Negotiable",
-                contactName: tutor.contact_name || tutor.user?.name || "Verified Tutor",
-                contactPhone: tutor.contact_phone || "+971 50 123 4567",
-                contactEmail: tutor.contact_email || tutor.user?.email || "tutor@eduride.ae",
+                description: tutor.description || null,
+                contactName: tutor.contact_name || "",
+                contactPhone: tutor.contact_phone || "",
+                contactEmail: tutor.contact_email || "",
                 rawAd: tutor,
               };
 
@@ -160,6 +146,7 @@ export const TutorDirectoryClient: React.FC = () => {
                   <TutorCard
                     tutor={mappedTutor}
                     onViewProfile={() => setActiveModalTutor(mappedTutor)}
+                    onViewDetails={() => setActiveDetailsTutor(tutor)}
                   />
                 </ScrollReveal>
               );
@@ -196,6 +183,13 @@ export const TutorDirectoryClient: React.FC = () => {
             title="Unlock Direct Tutor Contacts"
             description="Get instant access to verified tutor phone numbers and connect immediately with our single plan for all class levels."
             onClose={() => setActiveModalTutor(null)}
+          />
+        )}
+        {activeDetailsTutor && (
+          <AdvertisementDetailsModal
+            advertisement={activeDetailsTutor}
+            type="tutor"
+            onClose={() => setActiveDetailsTutor(null)}
           />
         )}
       </div>

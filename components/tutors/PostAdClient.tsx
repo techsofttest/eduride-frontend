@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
 import { RequestSuccessModal } from "@/components/tutors/RequestSuccessModal";
-import { CategoryData, CountryData, LocationData, EducationLevelData, BACKEND_URL } from "@/lib/api";
+import { CategoryData, CountryData, EducationLevelData, BACKEND_URL } from "@/lib/api";
 
 // removed carouselImages
 
@@ -17,7 +17,6 @@ export const PostAdClient: React.FC = () => {
   // Database lists
   const [categoriesList, setCategoriesList] = useState<CategoryData[]>([]);
   const [countriesList, setCountriesList] = useState<CountryData[]>([]);
-  const [locationsList, setLocationsList] = useState<LocationData[]>([]);
   const [teachingModesList, setTeachingModesList] = useState<{ id: number; name: string }[]>([]);
   const [educationLevelsList, setEducationLevelsList] = useState<EducationLevelData[]>([]);
 
@@ -32,8 +31,10 @@ export const PostAdClient: React.FC = () => {
     phone: "",
     city: "",
     category: "",
+    subject: "",
     subjectOrRequirement: "",
     gradeOrLevel: "",
+    tutorGradeLevels: [] as string[],
     experienceOrDays: "",
     preferredDays: [] as string[],
     preferredMode: "",
@@ -52,13 +53,22 @@ export const PostAdClient: React.FC = () => {
   const [tutorBanner, setTutorBanner] = useState<string>("");
 
   const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
+  const [isGradesDropdownOpen, setIsGradesDropdownOpen] = useState(false);
   const daysDropdownRef = React.useRef<HTMLDivElement>(null);
+  const gradesDropdownRef = React.useRef<HTMLDivElement>(null);
   const daysOptions = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const fallbackEducationLevels = ["Primary School", "Middle School", "High School", "University"];
+  const educationLevelOptions = educationLevelsList.length > 0
+    ? educationLevelsList.map((level) => level.name)
+    : fallbackEducationLevels;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (daysDropdownRef.current && !daysDropdownRef.current.contains(event.target as Node)) {
         setIsDaysDropdownOpen(false);
+      }
+      if (gradesDropdownRef.current && !gradesDropdownRef.current.contains(event.target as Node)) {
+        setIsGradesDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -78,9 +88,6 @@ export const PostAdClient: React.FC = () => {
       m.api.getCountries().then((data) => {
         if (data) setCountriesList(data);
       });
-      m.api.getLocations().then((data) => {
-        if (data) setLocationsList(data);
-      });
       m.api.getEducationLevels().then((data) => {
         if (data) setEducationLevelsList(data);
       });
@@ -88,7 +95,7 @@ export const PostAdClient: React.FC = () => {
         if (data) {
           const sImg = data.find(img => img.key === 'post_ad_student_side');
           if (sImg && sImg.image) setStudentBanner(`${BACKEND_URL}/storage/${sImg.image}`);
-          
+
           const tImg = data.find(img => img.key === 'post_ad_tutor_side');
           if (tImg && tImg.image) setTutorBanner(`${BACKEND_URL}/storage/${tImg.image}`);
         }
@@ -96,33 +103,8 @@ export const PostAdClient: React.FC = () => {
     });
   }, []);
 
-  // Filter locations by selected country if selected
-  const filteredLocations = useMemo(() => {
-    if (!selectedCountry) return locationsList;
-    const countryObj = countriesList.find((c) => c.name === selectedCountry);
-    if (!countryObj) return locationsList;
-    return locationsList.filter(
-      (loc) => loc.country_id === countryObj.id || loc.country?.id === countryObj.id
-    );
-  }, [selectedCountry, locationsList, countriesList]);
-
-  // Selected Location Object
-  const selectedLocationObj = useMemo(() => {
-    return locationsList.find((loc) => loc.name === formData.city);
-  }, [formData.city, locationsList]);
-
-  // Dynamically calculate currency based on selected country/location
+  // Dynamically calculate currency based on the selected country.
   const currentCurrency = useMemo(() => {
-    // 1. Direct currency property on location's country relationship
-    if (selectedLocationObj?.country?.currency) {
-      return selectedLocationObj.country.currency;
-    }
-    // 2. Lookup country in countriesList by location's country_id
-    if (selectedLocationObj?.country_id) {
-      const c = countriesList.find((ct) => ct.id === selectedLocationObj.country_id);
-      if (c?.currency) return c.currency;
-    }
-    // 3. Lookup country in countriesList by selectedCountry string
     if (selectedCountry) {
       const c = countriesList.find(
         (ct) => ct.name.toLowerCase() === selectedCountry.toLowerCase()
@@ -146,13 +128,17 @@ export const PostAdClient: React.FC = () => {
       }
     }
     return "AED";
-  }, [selectedLocationObj, selectedCountry, countriesList, formData.city]);
+  }, [selectedCountry, countriesList, formData.city]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeRole === "tutor" && formData.tutorGradeLevels.length === 0) {
+      setErrorMsg("Select at least one grade level taught.");
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg("");
 
@@ -161,7 +147,6 @@ export const PostAdClient: React.FC = () => {
       const feeMatch = formData.budgetOrRate.match(/\d+/);
       const fee_min = feeMatch ? parseInt(feeMatch[0], 10) : null;
 
-      const selectedLocObj = locationsList.find((l) => l.name === formData.city);
       const selectedCatObj = categoriesList.find((c) => c.name === formData.category);
 
       const payload = {
@@ -170,12 +155,14 @@ export const PostAdClient: React.FC = () => {
         description:
           formData.description ||
           (activeRole === "student-parent" ? "No details provided" : "No bio provided"),
-        country: selectedCountry || selectedLocObj?.country?.name || null,
+        country: selectedCountry,
         city: formData.city,
-        location_id: selectedLocObj?.id || null,
         category_id: selectedCatObj?.id || null,
+        subject_name: formData.subject || null,
         teaching_mode: formData.preferredMode,
-        education_level: formData.gradeOrLevel,
+        education_level: activeRole === "tutor"
+          ? JSON.stringify(formData.tutorGradeLevels)
+          : formData.gradeOrLevel,
         contact_name: formData.fullName,
         contact_email: formData.email,
         contact_phone: formData.phone,
@@ -184,18 +171,18 @@ export const PostAdClient: React.FC = () => {
         // Role specific mappings
         ...(activeRole === "student-parent"
           ? {
-              requirements: formData.subjectOrRequirement,
-              availability: formData.experienceOrDays,
-              preferred_days: formData.preferredDays,
-            }
+            requirements: formData.subjectOrRequirement,
+            availability: formData.experienceOrDays,
+            preferred_days: formData.preferredDays,
+          }
           : {
-              qualification: formData.subjectOrRequirement,
-              experience: formData.experienceOrDays,
-            }),
+            qualification: formData.subjectOrRequirement,
+            experience: formData.experienceOrDays,
+          }),
       };
 
       await import("@/lib/api").then((m) => m.api.postAdvertisement(payload));
-      
+
       // Save info for success modal
       setSubmittedInfo({ fullName: formData.fullName, phone: formData.phone, role: activeRole });
       setIsSubmitted(true);
@@ -208,8 +195,10 @@ export const PostAdClient: React.FC = () => {
         phone: "",
         city: "",
         category: "",
+        subject: "",
         subjectOrRequirement: "",
         gradeOrLevel: "",
+        tutorGradeLevels: [],
         experienceOrDays: "",
         preferredDays: [],
         preferredMode: "",
@@ -218,6 +207,7 @@ export const PostAdClient: React.FC = () => {
         description: "",
       });
       setSelectedCountry("");
+      setIsGradesDropdownOpen(false);
     } catch (error: any) {
       setErrorMsg(error.message || "Something went wrong. Please try again.");
     } finally {
@@ -281,11 +271,10 @@ export const PostAdClient: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveRole("student-parent")}
-              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs sm:text-sm font-semibold tracking-wider transition-all cursor-pointer ${
-                activeRole === "student-parent"
-                  ? "bg-[#2563eb] text-white shadow-sm shadow-blue-500/20"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
-              }`}
+              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs sm:text-sm font-semibold tracking-wider transition-all cursor-pointer ${activeRole === "student-parent"
+                ? "bg-[#2563eb] text-white shadow-sm shadow-blue-500/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
             >
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -295,11 +284,10 @@ export const PostAdClient: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveRole("tutor")}
-              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeRole === "tutor"
-                  ? "bg-[#2563eb] text-white shadow-sm shadow-blue-500/20"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
-              }`}
+              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeRole === "tutor"
+                ? "bg-[#2563eb] text-white shadow-sm shadow-blue-500/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
             >
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -323,9 +311,8 @@ export const PostAdClient: React.FC = () => {
                   {activeRole === "student-parent" ? "Ad Title / Heading *" : "Tutor Profile Title *"}
                 </label>
                 <span
-                  className={`text-xs font-semibold ${
-                    formData.title.length >= 40 ? "text-red-500" : "text-slate-400"
-                  }`}
+                  className={`text-xs font-semibold ${formData.title.length >= 40 ? "text-red-500" : "text-slate-400"
+                    }`}
                 >
                   {formData.title.length} / 40 max chars
                 </span>
@@ -405,9 +392,7 @@ export const PostAdClient: React.FC = () => {
                   <select
                     value={selectedCountry}
                     onChange={(e) => {
-                      const newCountry = e.target.value;
-                      setSelectedCountry(newCountry);
-                      setFormData((prev) => ({ ...prev, city: "" }));
+                      setSelectedCountry(e.target.value);
                     }}
                     className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
                     required
@@ -421,44 +406,28 @@ export const PostAdClient: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Location / City */}
+                {/* City */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Location / City *
+                    City
                   </label>
-                  <select
+                  <input
+                    type="text"
                     value={formData.city}
-                    onChange={(e) => {
-                      const newCity = e.target.value;
-                      const loc = locationsList.find((l) => l.name === newCity);
-                      if (loc && loc.country) {
-                        setSelectedCountry(loc.country.name);
-                      } else if (loc && loc.country_id) {
-                        const ct = countriesList.find((c) => c.id === loc.country_id);
-                        if (ct) setSelectedCountry(ct.name);
-                      }
-                      setFormData({ ...formData, city: newCity });
-                    }}
-                    className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
-                    required
-                  >
-                    <option value="">Select Location / City...</option>
-                    {filteredLocations.map((loc) => (
-                      <option key={loc.id} value={loc.name}>
-                        {loc.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="Enter city (optional)"
+                    className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Category & Grade / Level */}
+            {/* Category & Subject */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Category Dropdown from Database */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  {activeRole === "student-parent" ? "Subject / Category Needed *" : "Teaching Category / Subject *"}
+                  {activeRole === "student-parent" ? "Category Needed *" : "Teaching Category *"}
                 </label>
                 <select
                   value={formData.category}
@@ -484,32 +453,94 @@ export const PostAdClient: React.FC = () => {
                 </select>
               </div>
 
-              {/* Grade / Curriculum Level */}
               <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mathematics"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Grade / Curriculum Level */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Grade / Curriculum Level */}
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                   {activeRole === "student-parent" ? "Grade Level / Curriculum *" : "Grade Levels Taught *"}
                 </label>
-                <select
-                  value={formData.gradeOrLevel}
-                  onChange={(e) => setFormData({ ...formData, gradeOrLevel: e.target.value })}
-                  className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
-                  required
-                >
-                  <option value="">Select Grade Level...</option>
-                  {educationLevelsList.map((level) => (
-                    <option key={level.id} value={level.name}>
-                      {level.name}
-                    </option>
-                  ))}
-                  {educationLevelsList.length === 0 && (
-                    <>
-                      <option value="Primary School">Primary School</option>
-                      <option value="Middle School">Middle School</option>
-                      <option value="High School">High School</option>
-                      <option value="University">University</option>
-                    </>
-                  )}
-                </select>
+                {activeRole === "tutor" ? (
+                  <div className="relative" ref={gradesDropdownRef}>
+                    <button
+                      type="button"
+                      aria-expanded={isGradesDropdownOpen}
+                      onClick={() => setIsGradesDropdownOpen((open) => !open)}
+                      className="flex w-full items-center justify-between rounded-sm border border-slate-300 bg-white px-3.5 py-2.5 text-left text-sm font-semibold text-slate-950 outline-none transition-all focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100"
+                    >
+                      <span className={`truncate ${formData.tutorGradeLevels.length ? "text-slate-950" : "text-slate-600"}`}>
+                        {formData.tutorGradeLevels.length
+                          ? formData.tutorGradeLevels.join(", ")
+                          : "Select Grade Levels..."}
+                      </span>
+                      <svg
+                        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isGradesDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isGradesDropdownOpen && (
+                      <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                        <div className="space-y-1 p-2">
+                          {educationLevelOptions.map((level) => (
+                            <label
+                              key={level}
+                              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-slate-50"
+                            >
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-slate-300 text-[#2563eb] focus:ring-[#2563eb]"
+                                checked={formData.tutorGradeLevels.includes(level)}
+                                onChange={(event) => {
+                                  const checked = event.target.checked;
+                                  setErrorMsg("");
+                                  setFormData((previous) => ({
+                                    ...previous,
+                                    tutorGradeLevels: checked
+                                      ? [...previous.tutorGradeLevels, level]
+                                      : previous.tutorGradeLevels.filter((selected) => selected !== level),
+                                  }));
+                                }}
+                              />
+                              <span className="text-sm font-medium text-slate-700">{level}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <select
+                    value={formData.gradeOrLevel}
+                    onChange={(e) => setFormData({ ...formData, gradeOrLevel: e.target.value })}
+                    className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+                    required
+                  >
+                    <option value="">Select Grade Level...</option>
+                    {educationLevelOptions.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
@@ -549,35 +580,35 @@ export const PostAdClient: React.FC = () => {
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                       Preferred Days *
                     </label>
-                    <div 
+                    <div
                       className="w-full border border-slate-300 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-slate-950 bg-white cursor-pointer flex justify-between items-center transition-all focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100"
                       onClick={() => setIsDaysDropdownOpen(!isDaysDropdownOpen)}
                     >
                       <span className="truncate text-slate-600">
-                        {formData.preferredDays.length > 0 
-                          ? formData.preferredDays.join(", ") 
+                        {formData.preferredDays.length > 0
+                          ? formData.preferredDays.join(", ")
                           : "Select Days..."}
                       </span>
                       <svg className={`w-4 h-4 text-slate-400 transition-transform ${isDaysDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                       </svg>
                     </div>
-                    
+
                     {isDaysDropdownOpen && (
                       <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
                         <div className="p-2 space-y-1">
                           {daysOptions.map(day => (
                             <label key={day} className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer">
-                              <input 
-                                type="checkbox" 
+                              <input
+                                type="checkbox"
                                 className="w-4 h-4 text-[#2563eb] rounded border-slate-300 focus:ring-[#2563eb]"
                                 checked={formData.preferredDays.includes(day)}
                                 onChange={(e) => {
                                   const checked = e.target.checked;
                                   setFormData(prev => ({
                                     ...prev,
-                                    preferredDays: checked 
-                                      ? [...prev.preferredDays, day] 
+                                    preferredDays: checked
+                                      ? [...prev.preferredDays, day]
                                       : prev.preferredDays.filter(d => d !== day)
                                   }));
                                 }}
@@ -679,11 +710,10 @@ export const PostAdClient: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full inline-flex items-center justify-center gap-2 rounded-md px-6 py-3.5 text-base font-semibold shadow-lg transition-all ${
-                isSubmitting
-                  ? "bg-blue-400 text-white cursor-not-allowed"
-                  : "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-blue-500/25 cursor-pointer active:scale-[0.98]"
-              } mt-2`}
+              className={`w-full inline-flex items-center justify-center gap-2 rounded-md px-6 py-3.5 text-base font-semibold shadow-lg transition-all ${isSubmitting
+                ? "bg-blue-400 text-white cursor-not-allowed"
+                : "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-blue-500/25 cursor-pointer active:scale-[0.98]"
+                } mt-2`}
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
@@ -691,7 +721,7 @@ export const PostAdClient: React.FC = () => {
                   Processing...
                 </span>
               ) : activeRole === "student-parent" ? (
-                "Post Student Requirement"
+                "Submit Student Listing for Review"
               ) : (
                 "Submit Tutor Listing for Review"
               )}

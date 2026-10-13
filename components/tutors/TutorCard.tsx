@@ -8,26 +8,35 @@ export interface Tutor {
   category: string;
   image: string;
   location: string;
+  isCommunity?: boolean;
   gradeLevel: string;
   experience: string;
   mode: string;
   rate: string;
+  description?: string | null;
 }
 
 export interface TutorCardProps {
   tutor: Tutor;
   onViewProfile?: (tutor: Tutor) => void;
+  onViewDetails?: () => void;
   className?: string;
 }
 
 export const TutorCard: React.FC<TutorCardProps> = ({
   tutor,
   onViewProfile,
+  onViewDetails,
   className = "",
 }) => {
   return (
     <div className={`h-full rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group ${className}`}>
-      <div>
+      <button
+        type="button"
+        onClick={onViewDetails}
+        className="w-full cursor-pointer text-left"
+        aria-label={`View details for ${tutor.name}`}
+      >
         {/* Top Card Header with Light Blue Background */}
         <div className="p-5 sm:p-6 bg-[#eff6ff] border-b border-blue-100/80">
           <div className="flex items-start gap-3.5">
@@ -64,9 +73,24 @@ export const TutorCard: React.FC<TutorCardProps> = ({
                   </svg>
                   <span className="truncate">{tutor.location}</span>
                 </div>
+
+                {tutor.isCommunity && (
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
+                    Community Tutor
+                  </span>
+                )}
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Description */}
+        <div className="min-h-[4.5rem] px-5 sm:px-6 pt-3">
+          {tutor.description && (
+            <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+              {tutor.description}
+            </p>
+          )}
         </div>
 
         {/* Middle Details: Experience, Grade/Level & Mode */}
@@ -93,7 +117,7 @@ export const TutorCard: React.FC<TutorCardProps> = ({
             <span>{tutor.mode}</span>
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Bottom Row: Rate + View Profile Button */}
       <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 flex items-center justify-between border-t border-slate-100 pt-4">

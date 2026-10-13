@@ -4,20 +4,19 @@ import React, { useState, useEffect } from "react";
 import { StudentCard, StudentRequirement } from "@/components/students/StudentCard";
 import { TutorFilterBar } from "@/components/tutors/TutorFilterBar";
 import { PurchaseCard } from "@/components/tutors/PurchaseCard";
+import { AdvertisementDetailsModal } from "@/components/tutors/AdvertisementDetailsModal";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
-import { api, AdvertisementData, CategoryData, LocationData } from "@/lib/api";
+import { api, AdvertisementData, CategoryData } from "@/lib/api";
 
 export const StudentDirectoryClient: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedLocation, setSelectedLocation] = useState("All");
   const [selectedCountry, setSelectedCountry] = useState("All");
   const [selectedMode, setSelectedMode] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeModalStudent, setActiveModalStudent] = useState<any>(null);
+  const [activeDetailsStudent, setActiveDetailsStudent] = useState<AdvertisementData | null>(null);
 
   const [students, setStudents] = useState<AdvertisementData[]>([]);
   const [categoriesList, setCategoriesList] = useState<CategoryData[]>([]);
-  const [locationsList, setLocationsList] = useState<LocationData[]>([]);
   const [countriesList, setCountriesList] = useState<{id: number, name: string}[]>([]);
   const [teachingModesList, setTeachingModesList] = useState<{id: number, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +24,9 @@ export const StudentDirectoryClient: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [adsRes, catsRes, locsRes, modesRes, countriesRes] = await Promise.all([
+        const [adsRes, catsRes, modesRes, countriesRes] = await Promise.all([
           api.getAdvertisements({ type: "student_requirement" }),
           api.getCategories(),
-          api.getLocations(),
           api.getTeachingModes(),
           api.getCountries(),
         ]);
@@ -38,9 +36,6 @@ export const StudentDirectoryClient: React.FC = () => {
         }
         if (catsRes) {
           setCategoriesList(catsRes);
-        }
-        if (locsRes) {
-          setLocationsList(locsRes);
         }
         if (modesRes) {
           setTeachingModesList(modesRes);
@@ -60,53 +55,35 @@ export const StudentDirectoryClient: React.FC = () => {
   const categories = ["All", ...categoriesList.map((c) => c.name)];
   const countries = ["All", ...countriesList.map((c) => c.name)];
 
-  const filteredLocationsList = selectedCountry === "All" 
-    ? locationsList 
-    : locationsList.filter((l) => {
-        const country = countriesList.find((c) => c.name === selectedCountry);
-        return country && l.country_id === country.id;
-      });
-
-  const locations = ["All", ...filteredLocationsList.map((l) => l.name)];
   const modes = ["All", ...teachingModesList.map((m) => m.name)];
 
 
   const hasActiveFilters =
     selectedCategory !== "All" ||
-    selectedLocation !== "All" ||
     selectedCountry !== "All" ||
     selectedMode !== "All";
 
   const handleResetFilters = () => {
     setSelectedCategory("All");
     setSelectedCountry("All");
-    setSelectedLocation("All");
     setSelectedMode("All");
   };
 
   const filteredStudents = students.filter((student) => {
     const studentCategory = student.category?.name || "General";
-    const studentLocation = student.location?.name || student.city || "Online";
     const studentMode = student.teaching_mode || "";
     const selectedCountryData = countriesList.find(c => c.name === selectedCountry);
 
-    if (selectedCountry !== "All" && (!selectedCountryData || student.location?.country_id !== selectedCountryData.id)) {
+    if (selectedCountry !== "All" && (
+      !selectedCountryData ||
+      (student.country !== selectedCountry && student.location?.country_id !== selectedCountryData.id)
+    )) {
       return false;
     }
     if (selectedCategory !== "All" && studentCategory !== selectedCategory) {
       return false;
     }
-    if (selectedLocation !== "All" && !studentLocation.toLowerCase().includes(selectedLocation.toLowerCase())) {
-      return false;
-    }
     if (selectedMode !== "All" && !studentMode.toLowerCase().includes(selectedMode.replace(" tuition", "").replace(" Tuition", "").toLowerCase())) {
-      return false;
-    }
-    if (
-      searchQuery &&
-      !student.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !studentLocation.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
       return false;
     }
     return true;
@@ -120,15 +97,12 @@ export const StudentDirectoryClient: React.FC = () => {
         setSelectedCategory={setSelectedCategory}
         selectedCountry={selectedCountry}
         setSelectedCountry={setSelectedCountry}
-        selectedLocation={selectedLocation}
-        setSelectedLocation={setSelectedLocation}
         selectedMode={selectedMode}
         setSelectedMode={setSelectedMode}
         hasActiveFilters={hasActiveFilters}
         handleResetFilters={handleResetFilters}
         categories={categories}
         countries={countries}
-        locations={locations}
         modes={modes}
       />
 
@@ -147,16 +121,19 @@ export const StudentDirectoryClient: React.FC = () => {
               const mappedStudent = {
                 id: student.id,
                 title: student.title,
-                grade: student.education_level || "Any level",
+                grade: Array.isArray(student.education_level)
+                  ? student.education_level.join(", ")
+                  : student.education_level || "Any level",
                 location: student.location?.name || student.city || "Online",
                 preferredMode: student.teaching_mode || "Flexible",
                 preferredDays: student.preferred_days ? student.preferred_days.join(", ") : "Any day",
                 budget: student.fee_min ? `AED ${student.fee_min}${student.fee_type ? '/' + student.fee_type.replace('per ', '') : ''}` : "Negotiable",
                 category: student.category?.name || "General",
-                contactName: student.contact_name || student.user?.name || "Student / Parent",
-                contactPhone: student.contact_phone || "+971 50 987 6543",
-                contactEmail: student.contact_email || student.user?.email || "parent@eduride.ae",
+                contactName: student.contact_name || "",
+                contactPhone: student.contact_phone || "",
+                contactEmail: student.contact_email || "",
                 rawAd: student,
+                description: student.description,
               };
 
               return (
@@ -164,6 +141,7 @@ export const StudentDirectoryClient: React.FC = () => {
                   <StudentCard
                     student={mappedStudent as any}
                     onUnlockContact={() => setActiveModalStudent(mappedStudent)}
+                    onViewDetails={() => setActiveDetailsStudent(student)}
                   />
                 </ScrollReveal>
               );
@@ -191,6 +169,13 @@ export const StudentDirectoryClient: React.FC = () => {
               "Access verified tuition requests across UAE",
             ]}
             onClose={() => setActiveModalStudent(null)}
+          />
+        )}
+        {activeDetailsStudent && (
+          <AdvertisementDetailsModal
+            advertisement={activeDetailsStudent}
+            type="student"
+            onClose={() => setActiveDetailsStudent(null)}
           />
         )}
       </div>

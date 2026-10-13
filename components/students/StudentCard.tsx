@@ -11,23 +11,31 @@ export interface StudentRequirement {
   preferredDays: string;
   budget: string;
   category: string;
+  description?: string | null;
   postedDate?: string;
 }
 
 export interface StudentCardProps {
   student: StudentRequirement;
   onUnlockContact?: (student: StudentRequirement) => void;
+  onViewDetails?: () => void;
   className?: string;
 }
 
 export const StudentCard: React.FC<StudentCardProps> = ({
   student,
   onUnlockContact,
+  onViewDetails,
   className = "",
 }) => {
   return (
     <div className={`h-full rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group ${className}`}>
-      <div>
+      <button
+        type="button"
+        onClick={onViewDetails}
+        className="w-full cursor-pointer text-left"
+        aria-label={`View details for ${student.title}`}
+      >
         {/* Top Header Card */}
         <div className="p-5 sm:p-6 bg-[#eff6ff] border-b border-blue-100/80">
           <div className="flex items-start gap-3.5">
@@ -66,6 +74,14 @@ export const StudentCard: React.FC<StudentCardProps> = ({
           </div>
         </div>
 
+        <div className="min-h-[4.5rem] px-5 pt-3 sm:px-6">
+          {student.description && (
+            <p className="line-clamp-3 text-sm leading-relaxed text-slate-600">
+              {student.description}
+            </p>
+          )}
+        </div>
+
         {/* Middle Details: Grade, Preferred Mode, Days */}
         <div className="p-5 sm:p-6 space-y-3 text-sm font-semibold text-slate-800">
           {/* Grade */}
@@ -93,7 +109,7 @@ export const StudentCard: React.FC<StudentCardProps> = ({
             <span>Days: {student.preferredDays}</span>
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Bottom Row: Budget + Unlock Contact CTA */}
       <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 flex items-center justify-between border-t border-slate-100 pt-4">

@@ -2,9 +2,18 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { AdvertisementData } from "@/lib/api";
+
+interface PurchaseContactItem {
+  contactName?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  location?: string | null;
+  rawAd?: Partial<AdvertisementData>;
+}
 
 export interface PurchaseCardProps {
-  item?: any;
+  item?: PurchaseContactItem;
   onClose: () => void;
   title?: string;
   description?: string;
@@ -27,29 +36,19 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   // Extract contact details dynamically
-  const name =
-    item?.contactName ||
-    item?.name ||
-    item?.rawAd?.contact_name ||
-    item?.rawAd?.user?.name ||
-    (type === "student" ? "Student / Parent" : "Verified Tutor");
+  const name = item?.contactName || item?.rawAd?.contact_name || "";
 
-  const phone =
-    item?.contactPhone ||
-    item?.rawAd?.contact_phone ||
-    "+971 50 123 4567";
+  const phone = item?.contactPhone || item?.rawAd?.contact_phone || "";
 
-  const email =
-    item?.contactEmail ||
-    item?.rawAd?.contact_email ||
-    item?.rawAd?.user?.email ||
-    "contact@eduride.ae";
+  const email = item?.contactEmail || item?.rawAd?.contact_email || "";
 
   const location =
-    item?.location ||
     item?.rawAd?.location?.name ||
+    item?.rawAd?.area ||
     item?.rawAd?.city ||
-    "UAE";
+    item?.rawAd?.state ||
+    item?.rawAd?.country ||
+    "";
 
   const cleanWhatsAppPhone = phone.replace(/[^0-9]/g, "");
 
@@ -149,14 +148,14 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
 
             {/* Profile Info Card */}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3.5 mb-6">
-              <div>
+              {name && <div>
                 <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider">
                   {type === "student" ? "Student / Parent Name" : "Tutor Name"}
                 </span>
                 <span className="text-base font-bold text-slate-900">{name}</span>
-              </div>
+              </div>}
 
-              <div>
+              {phone && <div>
                 <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider">
                   Phone / WhatsApp
                 </span>
@@ -166,9 +165,9 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
                   </svg>
                   <span>{phone}</span>
                 </a>
-              </div>
+              </div>}
 
-              <div>
+              {email && <div>
                 <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider">
                   Email Address
                 </span>
@@ -178,18 +177,19 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
                   </svg>
                   <span>{email}</span>
                 </a>
-              </div>
+              </div>}
 
-              <div>
+              {location && <div>
                 <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider">
                   Location
                 </span>
                 <span className="text-sm font-semibold text-slate-700">{location}</span>
-              </div>
+              </div>}
             </div>
 
             {/* Direct Connect Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            {phone && (
+            <div className={`mb-3 grid gap-3 ${cleanWhatsAppPhone ? "grid-cols-2" : "grid-cols-1"}`}>
               <a
                 href={`tel:${phone}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-3 text-sm font-bold shadow-md transition-all active:scale-[0.98]"
@@ -200,7 +200,7 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
                 Call Now
               </a>
 
-              <a
+              {cleanWhatsAppPhone && <a
                 href={`https://wa.me/${cleanWhatsAppPhone}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -210,8 +210,9 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
                 </svg>
                 WhatsApp
-              </a>
+              </a>}
             </div>
+            )}
 
             <button
               onClick={onClose}
