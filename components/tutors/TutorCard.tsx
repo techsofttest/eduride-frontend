@@ -120,28 +120,28 @@ export const TutorCard: React.FC<TutorCardProps> = ({
       </button>
 
       {/* Bottom Row: Rate + View Profile Button */}
-      <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 flex items-center justify-between border-t border-slate-100 pt-4">
-        <span className="text-md sm:text-md font-bold text-slate-950">{tutor.rate}</span>
+      <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-4 flex items-center justify-between gap-2 border-t border-slate-100">
+        <span className="min-w-0 truncate whitespace-nowrap text-sm font-bold text-slate-950">{tutor.rate}</span>
 
         {onViewProfile ? (
           <button
             onClick={() => onViewProfile(tutor)}
-            className="inline-flex items-center gap-1.5 justify-center rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-sm shadow-[#2563eb]/20 cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1.5 justify-center whitespace-nowrap rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] px-3 py-2.5 text-xs font-bold text-white shadow-md shadow-[#2563eb]/25 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2563eb]/30 active:translate-y-0 active:scale-95 cursor-pointer"
           >
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
             </svg>
-            <span>Unlock Contact</span>
+            <span className="whitespace-nowrap">Unlock Contact</span>
           </button>
         ) : (
           <a
             href="#how-it-works"
-            className="inline-flex items-center gap-1.5 justify-center rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-sm shadow-[#2563eb]/20 cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1.5 justify-center whitespace-nowrap rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] px-3 py-2.5 text-xs font-bold text-white shadow-md shadow-[#2563eb]/25 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2563eb]/30 active:translate-y-0 active:scale-95 cursor-pointer"
           >
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
             </svg>
-            <span>Unlock Contact</span>
+            <span className="whitespace-nowrap">Unlock Contact</span>
           </a>
         )}
       </div>
