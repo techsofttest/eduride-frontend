@@ -1,16 +1,47 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export interface HeaderProps {
   // Add props if needed
 }
 
 export const Header: React.FC<HeaderProps> = () => {
+  const [activeOffer, setActiveOffer] = useState(0);
+  const offers = [
+    "🎉 Launch Offer! Enjoy Free Access for Parents Tutors and Tutors",
+    "View Contact Details Completely Free for The First Month!",
+  ];
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setActiveOffer((current) => (current + 1) % offers.length);
+    }, 3500);
+
+    return () => window.clearInterval(intervalId);
+  }, [offers.length]);
+
   return (
     <header className="sticky top-0 z-50 bg-[#000000] text-white border-b border-slate-800/80">
-      <div className="bg-[#2563eb] px-3 py-2 text-center text-xs font-semibold leading-relaxed text-white sm:text-sm">
-        🎉 Launch Offer! Parents and tutors can view contact details completely free for the first month!
+      <div
+        className="h-11 overflow-hidden border-b border-slate-200 bg-white text-xs font-semibold leading-relaxed text-black sm:h-9 sm:text-sm"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div
+          className="flex h-full transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+          style={{ transform: `translateX(-${activeOffer * 100}%)` }}
+        >
+          {offers.map((offer, index) => (
+            <div
+              key={offer}
+              aria-hidden={index !== activeOffer}
+              className="flex h-full w-full shrink-0 items-center justify-center px-3 text-center"
+            >
+              {offer}
+            </div>
+          ))}
+        </div>
       </div>
       <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}

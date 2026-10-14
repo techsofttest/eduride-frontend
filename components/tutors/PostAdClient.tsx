@@ -455,7 +455,7 @@ export const PostAdClient: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Subject
+                  Subjects
                 </label>
                 <input
                   type="text"
