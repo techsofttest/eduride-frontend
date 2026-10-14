@@ -1,14 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
+import { api, CategoryData } from "@/lib/api";
 
-export interface FooterProps {
-  // Add props if needed
-}
+export const Footer: React.FC = () => {
+  const [categories, setCategories] = useState<CategoryData[]>([]);
 
-export const Footer: React.FC<FooterProps> = () => {
+  useEffect(() => {
+    api.getCategories().then((data) => {
+      if (data) setCategories(data);
+    });
+  }, []);
+
   return (
     <footer className="relative overflow-hidden bg-[#050505] text-white border-t border-white/10 pt-20 lg:pt-28 pb-10">
       {/* Background Subtle Gradient Glow */}
@@ -96,23 +101,18 @@ export const Footer: React.FC<FooterProps> = () => {
                 Categories
               </h4>
               <ul className="space-y-3.5 text-sm font-medium text-slate-200">
+                {categories.map((category) => (
+                  <li key={category.id}>
+                    <Link
+                      href={`/find-tutor?category=${encodeURIComponent(category.slug)}`}
+                      className="hover:text-white transition-colors"
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
                 <li>
-                  <Link href="/find-tutor" className="hover:text-white transition-colors">School Tutors</Link>
-                </li>
-                <li>
-                  <Link href="/find-tutor" className="hover:text-white transition-colors">Chess coaches</Link>
-                </li>
-                <li>
-                  <Link href="/find-tutor" className="hover:text-white transition-colors">Medical Tutors</Link>
-                </li>
-                <li>
-                  <Link href="/find-tutor" className="hover:text-white transition-colors">Learning Support Assistants</Link>
-                </li>
-                <li>
-                  <Link href="/find-tutor" className="hover:text-white transition-colors">Islamic Tutors</Link>
-                </li>
-                <li>
-                  <Link href="/find-student" className="hover:text-white transition-colors">Student Requirements</Link>
+                  <Link href="/find-student" className="hover:text-white transition-colors">Student Requirement</Link>
                 </li>
               </ul>
             </div>

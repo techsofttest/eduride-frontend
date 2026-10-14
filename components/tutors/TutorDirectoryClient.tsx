@@ -8,11 +8,15 @@ import { AdvertisementDetailsModal } from "@/components/tutors/AdvertisementDeta
 import { ScrollReveal } from "@/components/animation/ScrollReveal";
 import { api, AdvertisementData, CategoryData } from "@/lib/api";
 
-export const TutorDirectoryClient: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+interface TutorDirectoryClientProps {
+  initialCategory?: string;
+}
+
+export const TutorDirectoryClient: React.FC<TutorDirectoryClientProps> = ({ initialCategory }) => {
+  const [selectedCategoryValue, setSelectedCategoryValue] = useState<string>(initialCategory || "All");
   const [selectedCountry, setSelectedCountry] = useState<string>("All");
   const [selectedMode, setSelectedMode] = useState<string>("All");
-  const [activeModalTutor, setActiveModalTutor] = useState<any>(null);
+  const [activeModalTutor, setActiveModalTutor] = useState<Tutor | null>(null);
   const [activeDetailsTutor, setActiveDetailsTutor] = useState<AdvertisementData | null>(null);
 
   const [tutors, setTutors] = useState<AdvertisementData[]>([]);
@@ -53,6 +57,10 @@ export const TutorDirectoryClient: React.FC = () => {
   }, []);
 
   const categories = ["All", ...categoriesList.map((c) => c.name)];
+  const selectedCategory =
+    categoriesList.find(
+      (item) => item.slug === selectedCategoryValue || item.name === selectedCategoryValue
+    )?.name || (categoriesList.length > 0 && selectedCategoryValue !== "All" ? "All" : selectedCategoryValue);
   const countries = ["All", ...countriesList.map((c) => c.name)];
   
   const modes = ["All", ...teachingModesList.map((m) => m.name)];
@@ -84,7 +92,7 @@ export const TutorDirectoryClient: React.FC = () => {
     selectedMode !== "All";
 
   const handleResetFilters = () => {
-    setSelectedCategory("All");
+    setSelectedCategoryValue("All");
     setSelectedCountry("All");
     setSelectedMode("All");
   };
@@ -93,7 +101,7 @@ export const TutorDirectoryClient: React.FC = () => {
     <section className="pb-8 sm:pb-12 bg-white text-slate-950 relative">
       <TutorFilterBar
         selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
+        setSelectedCategory={setSelectedCategoryValue}
         selectedCountry={selectedCountry}
         setSelectedCountry={setSelectedCountry}
         selectedMode={selectedMode}

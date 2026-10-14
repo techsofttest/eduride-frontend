@@ -4,7 +4,14 @@ import { DirectoryHero } from "@/components/global/DirectoryHero";
 import { TutorDirectoryClient } from "@/components/tutors/TutorDirectoryClient";
 import { PostAdCtaSection } from "@/components/home/PostAdCtaSection";
 
-export default function FindTutorPage() {
+interface FindTutorPageProps {
+  searchParams: Promise<{ category?: string | string[] }>;
+}
+
+export default async function FindTutorPage({ searchParams }: FindTutorPageProps) {
+  const { category } = await searchParams;
+  const initialCategory = Array.isArray(category) ? category[0] : category;
+
   return (
     <main className="min-h-screen bg-white text-[#0f172a] font-sans selection:bg-[#2563eb] selection:text-white">
       <Header />
@@ -14,10 +21,9 @@ export default function FindTutorPage() {
         ctaLabel="Post Ad to Find a Tutor"
         ctaHref="/post-ad"
       />
-      <TutorDirectoryClient />
+      <TutorDirectoryClient key={initialCategory || "all"} initialCategory={initialCategory} />
       <PostAdCtaSection />
       <Footer />
     </main>
   );
 }
-
