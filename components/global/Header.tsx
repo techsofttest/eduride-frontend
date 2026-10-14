@@ -9,6 +9,9 @@ export interface HeaderProps {
 export const Header: React.FC<HeaderProps> = () => {
   return (
     <header className="sticky top-0 z-50 bg-[#000000] text-white border-b border-slate-800/80">
+      <div className="bg-[#2563eb] px-3 py-2 text-center text-xs font-semibold leading-relaxed text-white sm:text-sm">
+        🎉 Launch Offer! Parents and tutors can view contact details completely free for the first month!
+      </div>
       <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 group">
