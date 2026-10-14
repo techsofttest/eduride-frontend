@@ -11,7 +11,7 @@ export default function AboutPage() {
     <main className="min-h-screen bg-[#fafbfc] text-[#0f172a] font-sans selection:bg-[#2563eb] selection:text-white">
       <Header />
       <AboutHeroSection />
-      <div id="about-details">
+      <div id="about-details" className="pt-20">
         <AboutSection />
       </div>
       <FounderSection />
