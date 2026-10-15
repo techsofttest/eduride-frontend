@@ -48,7 +48,7 @@ export const AboutSection: React.FC = () => {
 
         {/* Left Column: Image — only rendered when an image is available */}
         {imageUrl && (
-          <div className="lg:col-span-5 relative w-full h-72 sm:h-96 lg:h-full min-h-[360px] lg:min-h-full">
+          <div className="lg:col-span-5 relative w-full h-64 sm:h-80 lg:h-full lg:min-h-full">
             <img
               src={imageUrl}
               alt={aboutData.title || "About EduRide"}
@@ -58,7 +58,7 @@ export const AboutSection: React.FC = () => {
         )}
 
         {/* Right Column: Content & Details */}
-        <div className={`${imageUrl ? "lg:col-span-7" : ""} flex flex-col justify-center px-6 sm:px-10 lg:px-16 py-12 lg:py-16 max-w-3xl`}>
+        <div className={`${imageUrl ? "lg:col-span-7" : ""} flex flex-col justify-center px-4 sm:px-10 lg:px-16 py-8 sm:py-12 lg:py-16 max-w-3xl`}>
           {aboutData.badge_text && (
             <ScrollReveal direction="up" distance={20}>
               <div className="inline-flex items-center gap-2 text-[14px] font-bold uppercase tracking-wider text-[#2563eb] mb-3">

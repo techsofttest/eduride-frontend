@@ -59,7 +59,7 @@ export const TutorListingSection: React.FC = () => {
 
         {/* Section Header */}
         <ScrollReveal direction="up" distance={30}>
-          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
             <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1d4ed8] mb-3">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1d4ed8] opacity-75"></span>
@@ -67,20 +67,20 @@ export const TutorListingSection: React.FC = () => {
               </span>
               Featured Tutors
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight">
-              Eduride Community <br />Tutors
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight">
+              Eduride Community <br className="hidden sm:inline" />Tutors
             </h2>
           </div>
         </ScrollReveal>
 
         {/* Category Filter Tabs */}
         <ScrollReveal direction="up" distance={20} delay={100}>
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+          <div className="flex items-center gap-2 mb-8 sm:mb-10 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:justify-center -mx-4 px-4 sm:mx-0 sm:px-0">
             {categoryNames.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   activeFilter === cat
                     ? "bg-[#2563eb] text-white shadow-sm border border-[#2563eb]"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200"

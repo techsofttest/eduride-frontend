@@ -80,7 +80,7 @@ export const AdvertisementDetailsModal: React.FC<AdvertisementDetailsModalProps>
         <div className="pr-10">
           {advertisement.type === "community" && type === "tutor" && (
             <span className="mb-3 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              Community Tutor
+              Eduride Community Tutor
             </span>
           )}
           <h2 id="advertisement-details-title" className="text-2xl font-black text-slate-950">

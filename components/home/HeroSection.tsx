@@ -80,7 +80,7 @@ export const HeroSection: React.FC = () => {
               clickable: true,
               bulletActiveClass: "!bg-[#2563eb] !w-8 !rounded-full",
               bulletClass:
-                "inline-block w-1 h-1 bg-white/50 rounded-full mx-1 cursor-pointer transition-all duration-300 hover:bg-white",
+                "inline-block w-2.5 h-2.5 bg-white/50 rounded-full mx-1 cursor-pointer transition-all duration-300 hover:bg-white",
             }}
             navigation={{
               nextEl: ".hero-swiper-button-next",
@@ -131,12 +131,12 @@ export const HeroSection: React.FC = () => {
           </Swiper>
         )}
 
-        {/* Custom Navigation Arrows */}
+        {/* Custom Navigation Arrows (Desktop / Tablet) */}
         {banners.length > 1 && (
           <>
             <button
               aria-label="Previous Slide"
-              className="hero-swiper-button-prev absolute left-0 sm:left-2 lg:left-4 top-1/2 -translate-y-1/2 z-20 text-white/70 hover:text-white transition-all active:scale-95 cursor-pointer p-2 flex items-center justify-center hover:scale-110"
+              className="hero-swiper-button-prev hidden sm:flex absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 z-20 text-white/70 hover:text-white transition-all active:scale-95 cursor-pointer p-2 items-center justify-center hover:scale-110"
             >
               <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -145,7 +145,7 @@ export const HeroSection: React.FC = () => {
 
             <button
               aria-label="Next Slide"
-              className="hero-swiper-button-next absolute right-0 sm:right-2 lg:right-4 top-1/2 -translate-y-1/2 z-20 text-white/70 hover:text-white transition-all active:scale-95 cursor-pointer p-2 flex items-center justify-center hover:scale-110"
+              className="hero-swiper-button-next hidden sm:flex absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 z-20 text-white/70 hover:text-white transition-all active:scale-95 cursor-pointer p-2 items-center justify-center hover:scale-110"
             >
               <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

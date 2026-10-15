@@ -84,20 +84,20 @@ export const TrustStatsSection: React.FC = () => {
   }
 
   return (
-    <section className="py-20 lg:py-28 bg-white text-slate-900">
+    <section className="py-12 sm:py-20 lg:py-28 bg-white text-slate-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
         <ScrollReveal direction="up" distance={30}>
-          <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
-            <div className="inline-flex items-center gap-2 text-[14px] font-bold uppercase tracking-wider text-[#2563eb] mb-3">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+            <div className="inline-flex items-center gap-2 text-xs sm:text-[14px] font-bold uppercase tracking-wider text-[#2563eb] mb-3">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2563eb] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#2563eb]"></span>
               </span>
               Our Services
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
               What We Offer
             </h2>
           </div>
@@ -105,7 +105,7 @@ export const TrustStatsSection: React.FC = () => {
 
         {/* Container Box (on Blue Background) */}
         <ScrollReveal direction="up" distance={40} delay={100}>
-          <div className="relative overflow-hidden rounded-3xl bg-[#2563eb] p-8 sm:p-12 lg:p-16 text-white shadow-2xl shadow-[#2563eb]/20">
+          <div className="relative overflow-hidden rounded-3xl bg-[#2563eb] p-5 sm:p-10 lg:p-16 text-white shadow-2xl shadow-[#2563eb]/20">
 
             {/* Decorative Background Elements */}
             <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-white/10 pointer-events-none" />
@@ -115,20 +115,20 @@ export const TrustStatsSection: React.FC = () => {
             <div className="absolute top-2/3 -right-16 -translate-y-1/2 w-48 h-64 rounded-full bg-white/15 blur-sm pointer-events-none hidden lg:block" />
 
             {/* Grid Cards */}
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 items-stretch">
               {offerItems.map((item, index) => {
                 const iconBgClass = item.icon_bg || defaultBgColors[index % defaultBgColors.length];
                 return (
                   <ScrollReveal key={item.id} delay={index * 80} direction="up">
-                    <div className="group h-full flex flex-col justify-between p-8 sm:p-9 rounded-2xl bg-white text-slate-900 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+                    <div className="group h-full flex flex-col justify-between p-6 sm:p-9 rounded-2xl bg-white text-slate-900 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
                       <div>
                         {/* Icon Badge */}
-                        <div className={`w-14 h-14 rounded-2xl ${iconBgClass} text-white flex items-center justify-center mb-6 shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${iconBgClass} text-white flex items-center justify-center mb-5 sm:mb-6 shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
                           {getIconForTitle(item.title, index)}
                         </div>
 
                         {/* Title */}
-                        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 mb-3">
+                        <h3 className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 mb-2.5 sm:mb-3">
                           {item.title}
                         </h3>
 

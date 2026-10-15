@@ -171,7 +171,8 @@ export const api = {
   getTeachingModes: () => fetchApi<{id: number, name: string, is_active: boolean}[]>('/teaching-modes'),
   getEducationLevels: () => fetchApi<EducationLevelData[]>('/education-levels'),
   getAdvertisements: (params?: Record<string, string>) => {
-    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+    const queryParams = { per_page: '100', ...params };
+    const queryString = '?' + new URLSearchParams(queryParams).toString();
     return fetchApi<{ data: AdvertisementData[]; total: number }>(`/advertisements${queryString}`);
   },
   postAdvertisement: async (data: any) => {

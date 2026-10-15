@@ -35,16 +35,16 @@ export const DirectoryHero: React.FC<DirectoryHeroProps> = ({
               </nav>
 
               {/* Header Title */}
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight">
+              <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight">
                 {title}
               </h1>
             </div>
 
             {/* Right Action CTA Button (Secondary Style) */}
-            <div className="flex items-center shrink-0">
+            <div className="flex items-center shrink-0 w-full sm:w-auto">
               <Link
                 href={ctaHref}
-                className="inline-flex items-center justify-center gap-2 rounded-xl hover:bg-blue-50 text-[#2563eb] border border-blue-200/80 px-5 sm:px-6 py-3 sm:py-3.5 text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl hover:bg-blue-50 text-[#2563eb] border border-blue-200/80 px-5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#2563eb]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

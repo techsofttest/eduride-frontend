@@ -19,7 +19,7 @@ export const AboutHeroSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28 lg:py-28 min-h-[60vh] flex items-center justify-center text-white bg-slate-950">
+    <section className="relative overflow-hidden py-16 sm:py-28 lg:py-28 min-h-[40vh] sm:min-h-[60vh] lg:min-h-[80vh] flex items-center justify-center text-white bg-slate-950">
       {/* Background Image */}
       {bannerImg && (
         <img

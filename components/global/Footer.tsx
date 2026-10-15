@@ -15,23 +15,23 @@ export const Footer: React.FC = () => {
   }, []);
 
   return (
-    <footer className="relative overflow-hidden bg-[#050505] text-white border-t border-white/10 pt-20 lg:pt-28 pb-10">
+    <footer className="relative overflow-hidden bg-[#050505] text-white border-t border-white/10 pt-12 sm:pt-20 lg:pt-28 pb-10">
       {/* Background Subtle Gradient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#2563eb]/10 blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Main 4-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-16 items-start">
 
           {/* Column 1: Brand & Socials */}
           <ScrollReveal direction="up" delay={0}>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <a href="#home" className="inline-block group">
                 <img
                   src="/logo/logo2.png"
                   alt="EduRide Logo"
-                  className="h-32 w-auto object-contain group-hover:scale-105 transition-transform"
+                  className="h-20 sm:h-28 lg:h-32 w-auto object-contain group-hover:scale-105 transition-transform"
                 />
               </a>
               <p className="text-sm text-slate-200 leading-relaxed max-w-xs">
